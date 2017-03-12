@@ -52,37 +52,31 @@
 var cloneArray2D = array => array.map(row=>row.map(elem=>elem));
 
 
-var game = new Life([
-    [0,0,0,0,0,0],
-    [0,0,0,0,0,0],
-    [0,0,1,1,1,0],
-    [0,1,1,1,0,0],
-    [0,0,0,0,0,0],
-    [0,0,0,0,0,0],
-]);
 
-console.log(game + '');
-
-game.next();
-
-console.log(game + '');
-
-game.next();
-
-console.log(game + '');
 
 
 (function () {
 
-    var _ = self.LifeView = function (table, size) {
+    var _ = self.LifeView = function (table, size, playID, nextID) {
         this.grid = table;
         this.size = size;
-
+        this.game = null;
+        var playButton = document.getElementById(playID);
+        var nextButton = document.getElementById(nextID);
         this.createGrid();
+
+        playButton.addEventListener('click', ()=>{
+            this.play();
+        });
+
+        nextButton.addEventListener('click', ()=>{
+            this.next();
+        });
+
     }
 
     _.prototype.createGrid = function () {
-        console.log(this);
+
         var fragment = document.createDocumentFragment();
         this.grid.innerHTML = '';
         this.checkoboxes = [];
@@ -106,8 +100,27 @@ console.log(game + '');
 
     }
 
+    _.prototype.play = function () {
+        var seed = Array.prototype.map.call(this.grid.children, (row, y)=>{
+            return Array.prototype.map.call(row.children, (cell, x)=>{
+                return cell.childNodes[0].checked;
+            })
+        });
+
+        this.game = new Life(seed);
+    };
+
+    _.prototype.next = function () {
+        this.game.next();
+
+        Array.prototype.forEach.call(this.grid.children, (row, y)=>{
+            Array.prototype.forEach.call(row.children, (cell, x)=>{
+                cell.childNodes[0].checked = this.game.board[y][x];
+            });
+        });
+
+    };
+
 })();
 
-var lifeView = new LifeView( document.getElementById('grid'),12 );
-
-
+var lifeView = new LifeView( document.getElementById('grid'), 12, 'play', 'next' );
