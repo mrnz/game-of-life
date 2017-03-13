@@ -25,7 +25,7 @@
             border: 1px solid gray;
         }
 
-        input[type="checkbox"] {
+        #grid input[type="checkbox"] {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
@@ -35,15 +35,16 @@
             background: yellow;
         }
 
-        input[type="checkbox"]:checked {
+        #grid input[type="checkbox"]:checked {
             background: black;
         }
     </style>
 </head>
 <body>
     <table id="grid"></table>
-    <button id="play" type="button" name="button">Play</button>
     <button id="next" type="button" name="button">Next</button>
+    <input id="autoplay" type="checkbox" name="autoplay" />
+    <label for="autoplay">Autoplay</label>
     <script type="text/javascript" src="life.js"></script>
 </body>
 </html>
