@@ -4,47 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <style>
-        * {
-            padding: 0;
-            margin: 0;
-        }
-        body {
-            text-align: center;
-            font-family: sans-serif;
-        }
-
-        table {
-            margin: 0 auto;
-            border-spacing: 0;
-            border-collapse: collapse;
-        }
-
-        td {
-            border: 1px solid gray;
-        }
-
-        #grid input[type="checkbox"] {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            display: block;
-            width: 20px;
-            height: 20px;
-            background: yellow;
-        }
-
-        #grid input[type="checkbox"]:checked {
-            background: black;
-        }
-    </style>
+    <title>Conway's Game of Life</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <h1>Conway's Game of Life</h1>
     <table id="grid"></table>
-    <button id="next" type="button" name="button">Next</button>
-    <input id="autoplay" type="checkbox" name="autoplay" />
-    <label for="autoplay">Autoplay</label>
+    <div id="info">
+        Generation: <span id="generations"></span>
+        Cells alive: <span id="alive"></span>
+    </div>
+    <div class="buttons">
+        <button id="next" type="button" name="button" class="next"></button><!--
+     --><label id="autoplay-label" for="autoplay" class="css-label">
+             <input class="css-checkbox" id="autoplay" type="checkbox" name="autoplay" />
+             Autoplay
+        </label>
+        <label id="speed-label" for="speed">
+            Speed
+            <input type="range" id="speed" min="10" max="1000">
+
+        </label>
+    </div>
+
+
     <script type="text/javascript" src="life.js"></script>
+
 </body>
 </html>

@@ -1,23 +1,25 @@
 (function(){
     "use strict";
 
-    var cloneArray2D = array => array.map(row=>row.map(elem=>elem));
-
-    (function () {
-
-        var _ = self.Life = function (seed) {
+    class Life {
+        constructor(seed) {
             this.seed = seed;
             this.height = seed.length;
             this.width = seed[0].length;
 
             this.prevBoard = [];
-            this.board = cloneArray2D(seed);
+            this.activeElems = {};
+
+            this.board = this.cloneArray2D(seed);
         }
 
+        cloneArray2D(array){
+             return array.map(row=>row.map(elem=>elem))
+        }
 
-        _.prototype.next = function () {
-            this.prevBoard = cloneArray2D(this.board);
-
+        next() {
+            var totalAlive = 0;
+            this.prevBoard = this.cloneArray2D(this.board);
             this.prevBoard.forEach( (row,y) => {
                 row.forEach( (elem, x) => {
 
@@ -33,18 +35,18 @@
                             this.board[y][x] = 1;
                         }
                     }
-
+                    totalAlive += this.board[y][x];
                 });
             });
-
-        };
-
-
-        _.prototype.toString = function () {
-            return this.board.map(row=>row.join(' ')).join('\n')
+            return totalAlive;
         }
 
-        _.prototype.aliveNeighbors = function (array ,x, y) {
+        toString() {
+            return this.board.map(row=>row.join(' ')).join('\n');
+        }
+
+        aliveNeighbors(array ,x, y) {
+
             var prevRow = array[y-1] || [],
                 nextRow = array[y+1] || [];
 
@@ -54,33 +56,60 @@
                 nextRow[x-1],nextRow[x],nextRow[x+1],
             ].reduce( (prev, curr) => prev + +!!curr, 0 );
         }
+    }
 
-    })();
-
-    (function () {
-
-        var _ = self.LifeView = function (table, size, autoplayID, nextID) {
-
+    class LifeView {
+        constructor(table, size, autoplayID, nextID, speedID, generations, alive) {
             this.grid = table;
             this.size = size;
             this.game = null;
             this.started = false;
+            this.isPlaying = false;
+            this.speed = 1000;
+            this.generation = 0;
 
             this.autoplayButton = document.getElementById(autoplayID);
             this.nextButton = document.getElementById(nextID);
+            this.speedSelect = document.getElementById(speedID);
+            this.generationsCounter = document.getElementById(generations);
+            this.aliveCounter = document.getElementById(alive);
+
+            this.aliveCounter.innerText = '0';
+            this.generationsCounter.innerText = '0';
 
             this.createGrid();
 
+            this.setLabel = (label) => this.nextButton.setAttribute('class', label);
+
             this.autoplayButton.addEventListener('change', evt => {
-                this.nextButton.textContent = evt.target.checked === true ? "Play" : "Next";
+                evt.target.checked === true ? this.setLabel('play') : this.setLabel('next');
                 this.clearTimeout();
             });
 
-            this.nextButton.addEventListener('click', ()=>this.next());
+            this.nextButton.addEventListener('click', () => {
+
+                if( this.autoplayButton.checked){
+                    this.isPlaying ? this.setLabel('play') : this.setLabel('stop');
+                }
+
+                this.isPlaying && this.autoplayButton.checked ? this.clearTimeout() : this.next();
+
+            });
+
+            this.speedSelect.addEventListener('change', evt => {
+                this.speed = parseInt(evt.target.value);
+                if(this.autoplayButton.checked && this.isPlaying){
+                    this.clearTimeout();
+                    this.next();
+                }
+            });
 
             this.grid.addEventListener('change', evt => {
                 this.started = false;
+                this.autoplayButton.checked === true ? this.setLabel('play') : this.setLabel('next');
                 this.clearTimeout();
+                this.generation = 0;
+                this.generationsCounter.innerText = this.generation;
             });
 
             this.grid.addEventListener('keyup', evt => {
@@ -89,26 +118,20 @@
                     y = evt.target.coords[0],
                     x = evt.target.coords[1];
 
-                console.log(evt.keyCode);
                 switch (evt.keyCode) {
                     case 13:
-                        // enter
                         this.next();
                         break;
                     case 37:
-                        // left
                         x > 0 && this.checkoboxes[y][x-1].focus();
                         break;
                     case 38:
-                        // up
                         y > 0 && this.checkoboxes[y-1][x].focus();
                         break;
                     case 39:
-                        // right
                         x < this.size-1 && this.checkoboxes[y][x+1].focus();
                         break;
                     case 40:
-                        //  down
                         y < this.size-1 && this.checkoboxes[y+1][x].focus();
                         break;
                     default:
@@ -119,17 +142,17 @@
 
         }
 
-        _.prototype.clearTimeout = function() {
+        clearTimeout() {
             if(this.timeout){
                 clearTimeout(this.timeout);
+                this.isPlaying = false;
             }
         }
-        _.prototype.createGrid = function () {
 
+        createGrid() {
             var fragment = document.createDocumentFragment();
             this.grid.innerHTML = '';
             this.checkoboxes = [];
-
 
             for (let y = 0; y < this.size; y++) {
                 let row = document.createElement('tr');
@@ -147,11 +170,9 @@
 
                 this.grid.appendChild(row);
             }
-
         }
 
-
-        _.prototype.play = function () {
+        play() {
             var seed = this.checkoboxes.map((row, y) => {
                 return row.map((checkobox, x)=>{
                     return checkobox.checked;
@@ -160,13 +181,18 @@
 
             this.game = new Life(seed);
             this.started = true;
-        };
+        }
 
+        next() {
+            var totalAlive;
 
-        _.prototype.next = function () {
             !this.started && this.play();
 
-            this.game.next();
+            totalAlive = this.game.next();
+            this.generation++;
+
+            this.aliveCounter.innerText = totalAlive;
+            this.generationsCounter.innerText = this.generation;
 
             this.checkoboxes.forEach( (row, y) => {
                 row.forEach((checkobox, x)=>{
@@ -174,16 +200,22 @@
                 });
             });
 
-            if(this.autoplayButton.checked) {
+            if(totalAlive === 0){
+
+                if(this.autoplayButton.checked){
+                    this.isPlaying = false;
+                    this.setLabel('play');
+                }
+
+            }else if(this.autoplayButton.checked) {
+                this.isPlaying = true;
                 this.timeout = setTimeout(()=>{
                     this.next();
-                },300);
+                },this.speed);
             }
-        };
+        }
+    }
 
-    })();
-
-    new LifeView( document.getElementById('grid'), 25, 'autoplay', 'next' );
+    new LifeView( document.getElementById('grid'), 20, 'autoplay', 'next', 'speed', 'generations', 'alive' );
 
 })();
-
